@@ -1,5 +1,6 @@
 import os.path
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -134,6 +135,12 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+}
+
+# Настройки срока действия токенов
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 CORS_ALLOWED_ORIGINS = (
