@@ -1,46 +1,101 @@
-from rest_framework import generics, permissions
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
-from .models import Content
-from .permissions import IsAuthorOrReadOnly
-from .serializers import ContentSerializer
+from apps.content.forms import ContentForm
+from apps.content.models import Content
+from apps.payments.services import (get_subscription_status,
+                                    has_active_subscription)
 
 
-class ContentListView(generics.ListAPIView):
+class HomePageView(ListView):
+    model = Content
+    template_name = "content/list.html"
+    context_object_name = "contents"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_subscription_active"] = get_subscription_status(self.request.user)
+        return context
+
+
+class ContentListView(ListView):
     """
-        Просмотр списка контента
+    Список контента
     """
-    queryset = Content.objects.all()
-    serializer_class = ContentSerializer
-    permission_classes = [permissions.AllowAny]
+
+    model = Content
+    template_name = "content/list.html"
+    context_object_name = "contents"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_subscription_active"] = get_subscription_status(self.request.user)
+        return context
 
 
-class ContentCreateView(generics.CreateAPIView):
-    """
-        Создание нового контента
-    """
-    queryset = Content.objects.all()
-    serializer_class = ContentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class ContentDetailView(DetailView):
+    model = Content
+    template_name = "content/detail.html"
+    context_object_name = "content"
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def get(self, request, *args, **kwargs):
+        content = self.get_object()
+
+        # Если контент платный
+        if content.is_paid:
+            # Проверяем авторизацию
+            if not request.user.is_authenticated:
+                messages.warning(
+                    request, "Для просмотра платного контента нужно авторизоваться."
+                )
+                return redirect("users:login")
+
+            # Проверяем доступ по подписке
+            if not has_active_subscription(request.user):
+                messages.warning(
+                    request, "Для просмотра этого материала нужна активная подписка."
+                )
+                return redirect("payments:create-checkout")
+
+        return super().get(request, *args, **kwargs)
 
 
-class ContentRetrieveView(generics.RetrieveAPIView):
-    """
-        Просмотр одного контента
-    """
-    queryset = Content.objects.all()
-    serializer_class = ContentSerializer
-    permission_classes = [permissions.AllowAny]
+class ContentCreateView(LoginRequiredMixin, CreateView):
+    model = Content
+    form_class = ContentForm
+    template_name = "content/form.html"
+    success_url = reverse_lazy("content:content-list")
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
-class ContentUpdateView(generics.UpdateAPIView):
-    queryset = Content.objects.all()
-    serializer_class = ContentSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
+class ContentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Content
+    form_class = ContentForm
+    template_name = "content/form.html"
+    success_url = reverse_lazy("content:content-list")
+
+    def test_func(self):
+        content = self.get_object()
+        return self.request.user == content.author
+
+    def handle_no_permission(self):
+        from django.shortcuts import redirect
+
+        return redirect("content:content-list")
 
 
-class ContentDestroyView(generics.DestroyAPIView):
-    queryset = Content.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
+class ContentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Content
+    template_name = "content/confirm_delete.html"
+    success_url = reverse_lazy("content:content-list")
+
+    def test_func(self):
+        content = self.get_object()
+        return self.request.user == content.author
