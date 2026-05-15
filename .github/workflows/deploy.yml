@@ -83,6 +83,9 @@ jobs:
           file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/subspace-web:latest
+          build-args: |
+            SECRET_KEY=dummy
+            DEBUG=0
 
       - name: Build and push celery image
         uses: docker/build-push-action@v5
