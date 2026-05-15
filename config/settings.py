@@ -66,7 +66,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
+if 'GITHUB_ACTIONS' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",

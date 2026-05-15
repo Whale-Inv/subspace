@@ -29,7 +29,7 @@ jobs:
         env:
           SECRET_KEY: dummy-test-key
           DEBUG: '1'
-          DATABASE_URL: "sqlite://:memory:"
+          GITHUB_ACTIONS: 'true'
 
   build-and-push:
     needs: test
