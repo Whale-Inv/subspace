@@ -16,9 +16,7 @@ COPY . .
 
 ARG SECRET_KEY=dummy-key-for-build
 ARG DEBUG=0
-ENV SECRET_KEY=$SECRET_KEY
-ENV DEBUG=$DEBUG
 
-RUN python manage.py collectstatic --noinput
+RUN SECRET_KEY=$SECRET_KEY DEBUG=$DEBUG python manage.py collectstatic --noinput
 
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
