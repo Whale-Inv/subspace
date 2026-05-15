@@ -1,4 +1,5 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
 from django.db import models
 
 
@@ -7,7 +8,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, phone_number, password=None, **extra_fields):
         if not phone_number:
-            raise ValueError('Номер телефона обязателен')
+            raise ValueError("Номер телефона обязателен")
 
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
@@ -15,9 +16,9 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
         return self.create_user(phone_number, password, **extra_fields)
 
@@ -26,9 +27,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     """Пользователь с авторизацией только по номеру телефона"""
 
     phone_number = models.CharField(
-        max_length=20,
-        unique=True,
-        verbose_name="Номер телефона"
+        max_length=20, unique=True, verbose_name="Номер телефона"
     )
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
     first_name = models.CharField(max_length=150, blank=True, verbose_name="Имя")
@@ -36,9 +35,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=False, verbose_name="сотрудник")
-    date_joined = models.DateTimeField(auto_now_add=True, verbose_name="Дата регистрации")
+    date_joined = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата регистрации"
+    )
 
-    USERNAME_FIELD = 'phone_number'  # Поле для входа
+    USERNAME_FIELD = "phone_number"  # Поле для входа
     REQUIRED_FIELDS = []
 
     objects = UserManager()

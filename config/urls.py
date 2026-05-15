@@ -1,8 +1,12 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+
+from apps.content.views import HomePageView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -18,12 +22,22 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path("", include("apps.content.urls", namespace="content")),
+    path("admin/", admin.site.urls),
+    path("", HomePageView.as_view(), name="home"),
+    # HTML
+    path("content/", include("apps.content.urls", namespace="content")),
     path("payments/", include("apps.payments.urls", namespace="payments")),
     path("users/", include("apps.users.urls", namespace="users")),
-
-    #swagger
-    path("swagger/",schema_view.with_ui("swagger", cache_timeout=0),name="schema-swagger-ui",),
+    # API
+    path("api/", include("config.api_urls")),
+    # swagger
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

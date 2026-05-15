@@ -2,8 +2,9 @@
 name = "subspace"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Nikita Dorozhko <nick.dorozhko@yandex.ru>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.13"
@@ -20,6 +21,7 @@ django-celery-beat = "^2.9.0"
 dj-database-url = "^3.1.2"
 django-cors-headers = "^4.9.0"
 drf-yasg = "^1.21.15"
+gunicorn = "^26.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -28,6 +30,7 @@ flake8 = "^7.3.0"
 isort = "^8.0.1"
 pytest = "^9.0.3"
 factory-boy = "^3.3.3"
+coverage = "^7.14.0"
 
 [build-system]
 requires = ["poetry-core"]
