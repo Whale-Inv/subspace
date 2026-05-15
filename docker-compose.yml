@@ -40,6 +40,8 @@ services:
         condition: service_healthy
     env_file:
       - ./.env
+    environment:
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
 
   celery:
     build: .
