@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Профиль</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Номер телефона:</strong><br>{{ user.phone_number }}</p>
+                    <p><strong>Имя:</strong><br>{{ user.first_name|default:"Не указано" }}</p>
+                    <p><strong>Email:</strong><br>{{ user.email|default:"Не указан" }}</p>
+                    <p><strong>Дата регистрации:</strong><br>{{ user.date_joined|date:"d.m.Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header {% if is_active %}bg-success{% else %}bg-secondary{% endif %} text-white">
+                    <h4 class="mb-0">Подписка</h4>
+                </div>
+                <div class="card-body">
+                    {% if has_access %}
+                        <div class="alert alert-success">
+                            <h5>✅ Доступ к платному контенту</h5>
+                            <p class="mb-0">Действует до: <strong>{{ end_date|date:"d.m.Y" }}</strong></p>
+                        </div>
+
+                        {% if subscription.is_cancelled %}
+                            <div class="alert alert-info">
+                                🔄 Подписка отменена. Доступ сохранится до {{ end_date|date:"d.m.Y" }}
+                            </div>
+                        {% else %}
+                            <form action="{% url 'payments:cancel-subscription' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Отменить подписку</button>
+                            </form>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5>⚠️ Нет доступа к платному контенту</h5>
+                            <p class="mb-0">Оформите подписку, чтобы получить доступ.</p>
+                        </div>
+                        <a href="{% url 'payments:create-checkout' %}" class="btn btn-success">Оформить подписку</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

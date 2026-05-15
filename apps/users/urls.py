@@ -1,14 +1,16 @@
+from django.contrib.auth.views import LogoutView
 from django.urls import path
-from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.users.apps import UsersConfig
-from apps.users.views import UserCreateAPIView
+from apps.users.views import (AccountView, LoginView, RegisterView,
+                              VerifyCodeView)
 
 app_name = UsersConfig.name
 
 urlpatterns = [
-    path("login/",TokenObtainPairView.as_view(permission_classes=(AllowAny,)),name="token_obtain_pair",),
-    path("register/", UserCreateAPIView.as_view(permission_classes=(AllowAny,)), name="register"),
-    path("token/refresh/",TokenRefreshView.as_view(permission_classes=(AllowAny,)),name="token_refresh",),
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(next_page="/"), name="logout"),
+    path("register/", RegisterView.as_view(), name="register"),
+    path("verify-code/", VerifyCodeView.as_view(), name="verify-code"),
+    path("account/", AccountView.as_view(), name="account"),
 ]
