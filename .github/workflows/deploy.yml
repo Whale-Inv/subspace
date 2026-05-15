@@ -7,8 +7,10 @@ on:
     branches: [ develop, main ]
 
 jobs:
-  test:
+  linter:
+    name: Lint with flake8
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,18 +20,44 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          pip install poetry
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi --no-root
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Run flake8
+        run: poetry run flake8 .
+
+  test:
+    name: Run Django tests
+    runs-on: ubuntu-latest
+    needs: linter
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
 
       - name: Run tests
-        run: python manage.py test
+        run: poetry run python manage.py test
         env:
-          SECRET_KEY: dummy-test-key
-          DEBUG: '1'
-          DATABASE_URL: sqlite://:memory:
+          DEBUG: True
+          SECRET_KEY: dummy-secret-key-for-ci
 
   build-and-push:
     needs: test
